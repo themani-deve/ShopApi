@@ -1,0 +1,31 @@
+name: "my_shop"
+
+services:
+  postgres_db:
+    container_name: Postgres_Db
+    image: postgres:15
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    networks:
+      - ShopNet
+
+  app:
+    container_name: App
+    build: ./app/.
+    ports:
+      - "8000:8000"
+    command: sh -c "python main.py"
+    env_file:
+      - .env
+    depends_on:
+      - postgres_db
+    networks:
+      - ShopNet
+
+networks:
+  ShopNet:
+    driver: bridge
