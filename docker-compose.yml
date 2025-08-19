@@ -18,6 +18,8 @@ services:
     build: ./app/.
     ports:
       - "8000:8000"
+    volumes:
+      - "./app:/app"
     command: sh -c "python main.py"
     env_file:
       - .env
