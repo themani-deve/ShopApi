@@ -27,23 +27,39 @@ class UserService:
 
     @staticmethod
     async def send_key(session: AsyncSession, email: str):
-        user = await UserRepository.find(session=session, email=email, is_active=False)
+        user = await UserRepository.find(session=session, email=email)
 
         if not user:
             return None
 
-        active_key = get_random_string(72)
-        user = await UserRepository.update(session=session, uuid=user.id, active_key=active_key)
+        key = get_random_string(72)
+        user = await UserRepository.update(session=session, uuid=user.id, key=key)
 
         return user
 
     @staticmethod
-    async def activate(session: AsyncSession, active_key: str):
-        user = await UserRepository.find(session=session, active_key=active_key, is_active=False)
+    async def activate(session: AsyncSession, key: str):
+        user = await UserRepository.find(session=session, key=key)
+
+        if user and user.is_active:
+            await UserRepository.update(session=session, uuid=user.id, key=None)
+            return None
+
+        elif not user:
+            return None
+
+        user = await UserRepository.update(session=session, uuid=user.id, is_active=True, key=None)
+
+        return user
+
+    @staticmethod
+    async def change_password(session: AsyncSession, key: str, new_pass: str):
+        user = await UserRepository.find(session=session, key=key)
 
         if not user:
             return None
 
-        user = await UserRepository.update(session=session, uuid=user.id, is_active=True, active_key=None)
+        hashed_pass = PasswordService.hash(plain_pass=new_pass)
+        user = await UserRepository.update(session=session, uuid=user.id, password=hashed_pass, key=None)
 
         return user

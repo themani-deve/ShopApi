@@ -1,9 +1,21 @@
 from pydantic import BaseModel
 
 
-class UserSchema(BaseModel):
+class LoginSchema(BaseModel):
     email: str
     password: str
+
+
+class RegisterSchema(BaseModel):
+    email: str
+    password: str
+    confirm_password: str
+
+    @property
+    def is_equal(self):
+        if not self.password == self.confirm_password:
+            return False
+        return True
 
 
 class TokenSchema(BaseModel):
@@ -11,5 +23,16 @@ class TokenSchema(BaseModel):
     refresh: str
 
 
-class SendActiveKeySchema(BaseModel):
+class SendKeySchema(BaseModel):
     email: str
+
+
+class ChangePasswordSchema(BaseModel):
+    password: str
+    confirm_password: str
+
+    @property
+    def is_equal(self):
+        if not self.password == self.confirm_password:
+            return False
+        return True

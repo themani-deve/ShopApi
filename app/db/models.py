@@ -21,7 +21,7 @@ class User(Base):
     phone_number: Mapped[str] = mapped_column(String(11), nullable=True, unique=True)
 
     is_active: Mapped[bool] = mapped_column(Boolean(), default=False)
-    active_key: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
+    key: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
 
     join_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now, onupdate=datetime.now)
