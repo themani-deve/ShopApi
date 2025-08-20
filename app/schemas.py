@@ -9,3 +9,7 @@ class UserSchema(BaseModel):
 class TokenSchema(BaseModel):
     access: str
     refresh: str
+
+
+class SendActiveKeySchema(BaseModel):
+    email: str
