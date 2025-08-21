@@ -1,5 +1,5 @@
 from db.models import User
-from services.pass_service import PasswordService
+from services.password import PasswordService
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,7 +29,7 @@ class UserRepository:
         result = await session.execute(query)
 
         return result.scalars().first()
-    
+
     @staticmethod
     async def update(session: AsyncSession, uuid: str, **kwargs):
         query = await session.execute(select(User).filter_by(id=uuid))
@@ -37,7 +37,7 @@ class UserRepository:
 
         if not user:
             return None
-        
+
         for key, value in kwargs.items():
             setattr(user, key, value)
 

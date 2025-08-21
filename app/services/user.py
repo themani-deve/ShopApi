@@ -1,5 +1,5 @@
-from repositories.jwt_repository import JWTManager
-from repositories.user_repository import PasswordService, UserRepository
+from repositories.user import PasswordService, UserRepository
+from services.jwt import JWTService
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.generators import get_random_string
 
@@ -15,8 +15,8 @@ class UserService:
         if not PasswordService.verify(plain_pass=password, hashed_pass=user.password):
             return None
 
-        access = JWTManager.create_access(payload=user.to_payload)
-        refresh = JWTManager.create_refresh(payload=user.to_payload)
+        access = JWTService.create_access(payload=user.to_payload)
+        refresh = JWTService.create_refresh(payload=user.to_payload)
 
         return {"access": access, "refresh": refresh}
 

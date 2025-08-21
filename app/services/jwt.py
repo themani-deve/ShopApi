@@ -5,7 +5,7 @@ from jose import jwt
 from jose.exceptions import ExpiredSignatureError, JWTError
 
 
-class JWTManager:
+class JWTService:
     @staticmethod
     def create_access(payload: dict):
         exp = datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_EXPIRED_MINUTES)
