@@ -45,16 +45,19 @@ class ProductService:
 
 class CartService:
     @staticmethod
-    async def add_to_cart(session: AsyncSession, user: TokenDataSchema, product_id: UUID, quantity: int):
-        user_obj = await UserRepository.find(session=session, id=user.id, is_active=True)
-        if not user_obj:
+    async def add(session: AsyncSession, user: TokenDataSchema, product_id: UUID, quantity: int):
+        user = await UserRepository.find(session=session, id=user.id)
+        if not user:
             return None
 
         product = await ProductRepository.find(session=session, id=product_id, is_active=True)
         if not product:
             return None
 
-        cart = await CartRepository.create(session=session, user=user_obj)
-        await CartRepository.add_to_cart(session=session, product=product, cart=cart, quantity=quantity)
+        cart = await CartRepository.create_cart(session=session, user_id=user.id)
+        if not cart:
+            return None
 
-        return cart
+        item = await CartRepository.add(session=session, cart_id=cart.id, product_id=product.id, quantity=quantity)
+
+        return item

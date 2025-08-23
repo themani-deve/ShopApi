@@ -4,9 +4,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 
-AsyncSessionLocal = sessionmaker(
-    engine, autoflush=False, autocommit=False, class_=AsyncSession
-)
+AsyncSessionLocal = sessionmaker(engine, autoflush=False, autocommit=False, expire_on_commit=False, class_=AsyncSession)
 
 Base = declarative_base()
 

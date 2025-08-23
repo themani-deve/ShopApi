@@ -45,15 +45,21 @@ async def product_detail(
     return product
 
 
-@route.post("/add-to-cart", response_model=AddCartResponseSchema)
+@route.post("/add-to-cart/{product_id}")
 async def add_to_cart(
-    session: AsyncSession = Depends(get_db), token: str = Depends(get_current_user), data: AddCartInputSchema = Body()
+    product_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    user: TokenDataSchema = Depends(get_current_user),
+    data: AddCartInputSchema = Body(),
 ):
-    response = await CartService.add_to_cart(
-        session=session, user=token, product_id=data.product_id, quantity=data.quantity
+    response = await CartService.add(
+        session=session,
+        user=user,
+        product_id=product_id,
+        quantity=data.quantity,
     )
 
     if not response:
         raise HTTPException(status_code=400, detail="There was a problem")
-    
-    return response
+
+    return {"detail": "Product added to your cart successfuly"}

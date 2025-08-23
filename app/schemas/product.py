@@ -71,7 +71,6 @@ class CartItemSchema(BaseModel):
 
 
 class AddCartInputSchema(BaseModel):
-    product_id: UUID
     quantity: int = Field(default=1, ge=1, description="Quantity greater than or equal to one")
 
 
