@@ -1,21 +1,23 @@
-from core.dependencies.user import is_admin
+from typing import Optional
+
+from core.dependencies.user import get_current_user, is_admin, login_optional
 from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from schemas.product import *
 from schemas.user import TokenDataSchema
-from services.product import ProductService
+from services.product import CartService, ProductService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 route = APIRouter()
 
 
-@route.post("/create", response_model=ProductResponseSchema)
+@route.post("/create", response_model=CreateProductResponseSchema)
 async def create(
     token: TokenDataSchema = Depends(is_admin),
     session: AsyncSession = Depends(get_db),
-    data: CreateProductSchema = Body(),
+    data: CreateProductInputSchema = Body(),
 ):
     product = await ProductService.create(session=session, token=token, data=data)
 
@@ -25,17 +27,33 @@ async def create(
     return product
 
 
-@route.get("", response_model=list[ProductResponseSchema])
+@route.get("", response_model=list[ProductSchema])
 async def products(session: AsyncSession = Depends(get_db)):
     products = await ProductService.products(session=session)
     return products
 
 
-@route.get("/{slug}", response_model=ProductResponseSchema)
-async def product_detail(slug: str, session: AsyncSession = Depends(get_db)):
-    product = await ProductService.product_detail(session=session, slug=slug)
+@route.get("/{slug}", response_model=ProductDetailSchema)
+async def product_detail(
+    slug: str, session: AsyncSession = Depends(get_db), token: Optional[TokenDataSchema] = Depends(login_optional)
+):
+    product = await ProductService.product_detail(session=session, slug=slug, token=token)
 
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
 
     return product
+
+
+@route.post("/add-to-cart", response_model=AddCartResponseSchema)
+async def add_to_cart(
+    session: AsyncSession = Depends(get_db), token: str = Depends(get_current_user), data: AddCartInputSchema = Body()
+):
+    response = await CartService.add_to_cart(
+        session=session, user=token, product_id=data.product_id, quantity=data.quantity
+    )
+
+    if not response:
+        raise HTTPException(status_code=400, detail="There was a problem")
+    
+    return response

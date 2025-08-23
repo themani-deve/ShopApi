@@ -27,7 +27,8 @@ class User(Base):
     join_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now, onupdate=datetime.now)
 
-    products: Mapped[list["Product"]] = relationship(back_populates="owner")
+    products: Mapped[list["Product"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
+    carts: Mapped[list["Cart"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     @property
     def to_payload(self):
@@ -54,8 +55,10 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now, onupdate=datetime.now)
 
-    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    owner_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
     owner: Mapped["User"] = relationship(back_populates="products")
+
+    cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("price >= 0 ", name="product_price_min"),
@@ -71,3 +74,35 @@ class Product(Base):
             final_price = multiplier * self.price
             return final_price
         return self.price
+
+
+class Cart(Base):
+    __tablename__ = "carts"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+
+    status: Mapped[bool] = mapped_column(Boolean(), default=False)
+    authority: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
+    ref_id: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
+
+    paid_at: Mapped[datetime] = mapped_column(DateTime(), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now, onupdate=datetime.now)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    user: Mapped["User"] = relationship(back_populates="carts")
+
+    items: Mapped[list["CartItem"]] = relationship(back_populates="cart", cascade="all, delete-orphan")
+
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+
+    quantity: Mapped[int] = mapped_column(Integer(), default=0)
+
+    cart_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("carts.id"))
+    cart: Mapped["Cart"] = relationship(back_populates="items")
+
+    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"))
+    product: Mapped["Product"] = relationship(back_populates="cart_items")
