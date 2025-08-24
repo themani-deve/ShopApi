@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 
 load_dotenv()
@@ -33,3 +34,7 @@ REFRESH_EXPIRED_MINUTES = 60
 # Hash password settings
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated=["auto"])
+
+# Authentication route
+
+oauth2_scheme = OAuth2PasswordBearer("/accounts/login")

@@ -1,3 +1,4 @@
+from core.dependencies.user import get_current_user
 from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
@@ -8,8 +9,6 @@ from services.user import UserService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 route = APIRouter()
-
-oauth2_scheme = OAuth2PasswordBearer("/accounts/login")
 
 
 @route.post("/login", response_model=TokenSchema, tags=["Account"])
@@ -60,3 +59,13 @@ async def activate(key: str, session: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Key not valid or account is activated")
 
     return {"detail": "Your account has been activated"}
+
+
+@route.delete("/delete", tags=["Account"])
+async def delete(session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)):
+    deleted = await UserService.delete(session=session, user=user)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {"detail": "User deleted successfuly"}

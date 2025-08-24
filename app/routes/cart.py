@@ -41,3 +41,15 @@ async def add_to_cart(
         raise HTTPException(status_code=400, detail="There was a problem")
 
     return {"detail": "Product added to your cart successfuly"}
+
+
+@route.delete("/delete-item/{item_id}", tags=["Cart"])
+async def delete_item(
+    item_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
+):
+    deleted = await CartService.delete_item(session=session, user=user, item_id=item_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    return {"detail": "Item deleted successfuly"}

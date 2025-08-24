@@ -39,3 +39,14 @@ class ProductService:
         product = ProductDetailSchema(product=product_dict, user_status=product_user)
 
         return product
+    
+    @staticmethod
+    async def delete(session: AsyncSession, user: TokenDataSchema, product_id: UUID):
+        product = await ProductRepository.find(session=session, id=product_id, owner_id=user.id)
+
+        if not product:
+            return None
+        
+        deleted = await ProductRepository.delete(session=session, product_id=product.id)
+        
+        return deleted

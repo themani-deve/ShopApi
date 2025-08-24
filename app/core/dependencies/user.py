@@ -2,7 +2,7 @@ from typing import Optional
 
 from fastapi import Depends, Header
 from fastapi.exceptions import HTTPException
-from routes.user import oauth2_scheme
+from core.settings import oauth2_scheme
 from schemas.user import TokenDataSchema
 from services.jwt import JWTService
 

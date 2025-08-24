@@ -1,4 +1,5 @@
 from repositories.user import PasswordService, UserRepository
+from schemas.user import TokenDataSchema
 from services.jwt import JWTService
 from sqlalchemy.ext.asyncio import AsyncSession
 from utils.generators import get_random_string
@@ -63,3 +64,8 @@ class UserService:
         user = await UserRepository.update(session=session, uuid=user.id, password=hashed_pass, key=None)
 
         return user
+
+    @staticmethod
+    async def delete(session: AsyncSession, user: TokenDataSchema):
+        deleted = await UserRepository.delete(session=session, user_id=user.id)
+        return deleted

@@ -53,3 +53,15 @@ class CartRepository:
         await session.refresh(item)
 
         return item
+    
+    @staticmethod
+    async def delete_item(session: AsyncSession, item_id: UUID):
+        item = await CartRepository.find_item(session=session, id=item_id)
+
+        if not item:
+            return None
+        
+        await session.delete(item)
+        await session.commit()
+
+        return True

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from core.dependencies.user import is_admin, login_optional
+from core.dependencies.user import get_current_user, is_admin, login_optional
 from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
@@ -43,3 +43,15 @@ async def create(
         raise HTTPException(status_code=400, detail="Product already exists")
 
     return product
+
+
+@route.delete("/delete/{product_id}", tags=["Product"])
+async def delete(
+    product_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
+):
+    deleted = await ProductService.delete(session=session, user=user, product_id=product_id)
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return {"detail": "Product deleted successfuly"}

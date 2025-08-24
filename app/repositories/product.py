@@ -2,6 +2,7 @@ from db.models import Product
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from uuid import UUID
 
 
 class ProductRepository:
@@ -28,3 +29,15 @@ class ProductRepository:
         product = query.scalar_one_or_none()
 
         return product
+    
+    @staticmethod
+    async def delete(session: AsyncSession, product_id: UUID):
+        product = await ProductRepository.find(session=session, id=product_id)
+
+        if not product:
+            return None
+        
+        await session.delete(product)
+        await session.commit()
+
+        return True

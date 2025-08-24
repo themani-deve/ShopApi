@@ -37,3 +37,19 @@ class CartService:
             cart = await CartRepository.create_cart(session=session, user_id=user.id)
 
         return cart
+    
+    @staticmethod
+    async def delete_item(session: AsyncSession, user: TokenDataSchema, item_id: UUID):
+        cart = await CartRepository.find_cart(session=session, user_id=user.id, status=False)
+
+        if not cart:
+            return None
+
+        item = await CartRepository.find_item(session=session, id=item_id, cart_id=cart.id)
+
+        if not item:
+            return None
+        
+        deleted = await CartRepository.delete_item(session=session, item_id=item.id)
+
+        return deleted
