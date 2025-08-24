@@ -12,7 +12,7 @@ route = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer("/accounts/login")
 
 
-@route.post("/login", response_model=TokenSchema)
+@route.post("/login", response_model=TokenSchema, tags=["Account"])
 async def login(session: AsyncSession = Depends(get_db), data: LoginSchema = Body()):
     tokens = await UserService.login(session=session, email=data.email, password=data.password)
 
@@ -22,7 +22,7 @@ async def login(session: AsyncSession = Depends(get_db), data: LoginSchema = Bod
     return tokens
 
 
-@route.post("/register")
+@route.post("/register", tags=["Account"])
 async def register(session: AsyncSession = Depends(get_db), data: RegisterSchema = Body()):
     user = await UserService.register(session=session, email=data.email, password=data.password)
 
@@ -32,7 +32,7 @@ async def register(session: AsyncSession = Depends(get_db), data: RegisterSchema
     return {"detail": "User created successfuly"}
 
 
-@route.post("/send-key")
+@route.post("/send-key", tags=["Account"])
 async def send_key(session: AsyncSession = Depends(get_db), data: SendKeySchema = Body()):
     user = await UserService.send_key(session=session, email=data.email)
 
@@ -42,7 +42,7 @@ async def send_key(session: AsyncSession = Depends(get_db), data: SendKeySchema 
     return {"detail": "Key has been sent you"}
 
 
-@route.post("/change-password/{key}")
+@route.post("/change-password/{key}", tags=["Account"])
 async def change_password(key: str, session: AsyncSession = Depends(get_db), data: ChangePasswordSchema = Body()):
     user = await UserService.change_password(session=session, key=key, new_pass=data.password)
 
@@ -52,7 +52,7 @@ async def change_password(key: str, session: AsyncSession = Depends(get_db), dat
     return {"detail": "Your password changed successfuly"}
 
 
-@route.get("/activate/{key}")
+@route.get("/activate/{key}", tags=["Account"])
 async def activate(key: str, session: AsyncSession = Depends(get_db)):
     user = await UserService.activate(session=session, key=key)
 

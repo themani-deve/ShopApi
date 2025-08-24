@@ -1,6 +1,4 @@
-from uuid import UUID
-
-from repositories.product import CartRepository, ProductRepository
+from repositories.product import ProductRepository
 from repositories.user import UserRepository
 from schemas.product import *
 from schemas.user import TokenDataSchema
@@ -10,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class ProductService:
     @staticmethod
     async def create(session: AsyncSession, token: TokenDataSchema, data: CreateProductInputSchema):
-        user = await UserRepository.find(session=session, id=token.id)
+        user = await UserRepository.find(session=session, id=token.id, is_active=True, is_staff=True)
 
         if not user:
             return None
@@ -41,23 +39,3 @@ class ProductService:
         product = ProductDetailSchema(product=product_dict, user_status=product_user)
 
         return product
-
-
-class CartService:
-    @staticmethod
-    async def add(session: AsyncSession, user: TokenDataSchema, product_id: UUID, quantity: int):
-        user = await UserRepository.find(session=session, id=user.id)
-        if not user:
-            return None
-
-        product = await ProductRepository.find(session=session, id=product_id, is_active=True)
-        if not product:
-            return None
-
-        cart = await CartRepository.create_cart(session=session, user_id=user.id)
-        if not cart:
-            return None
-
-        item = await CartRepository.add(session=session, cart_id=cart.id, product_id=product.id, quantity=quantity)
-
-        return item

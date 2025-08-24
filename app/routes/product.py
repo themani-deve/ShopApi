@@ -1,39 +1,25 @@
 from typing import Optional
 
-from core.dependencies.user import get_current_user, is_admin, login_optional
+from core.dependencies.user import is_admin, login_optional
 from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from schemas.product import *
 from schemas.user import TokenDataSchema
-from services.product import CartService, ProductService
+from services.product import ProductService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 route = APIRouter()
 
 
-@route.post("/create", response_model=CreateProductResponseSchema)
-async def create(
-    token: TokenDataSchema = Depends(is_admin),
-    session: AsyncSession = Depends(get_db),
-    data: CreateProductInputSchema = Body(),
-):
-    product = await ProductService.create(session=session, token=token, data=data)
-
-    if not product:
-        raise HTTPException(status_code=400, detail="Product already exists")
-
-    return product
-
-
-@route.get("", response_model=list[ProductSchema])
+@route.get("", response_model=list[ProductSchema], tags=["Product"])
 async def products(session: AsyncSession = Depends(get_db)):
     products = await ProductService.products(session=session)
     return products
 
 
-@route.get("/{slug}", response_model=ProductDetailSchema)
+@route.get("/{slug}", response_model=ProductDetailSchema, tags=["Product"])
 async def product_detail(
     slug: str, session: AsyncSession = Depends(get_db), token: Optional[TokenDataSchema] = Depends(login_optional)
 ):
@@ -45,21 +31,15 @@ async def product_detail(
     return product
 
 
-@route.post("/add-to-cart/{product_id}")
-async def add_to_cart(
-    product_id: UUID,
+@route.post("/create", response_model=CreateProductResponseSchema, tags=["Product"])
+async def create(
+    token: TokenDataSchema = Depends(is_admin),
     session: AsyncSession = Depends(get_db),
-    user: TokenDataSchema = Depends(get_current_user),
-    data: AddCartInputSchema = Body(),
+    data: CreateProductInputSchema = Body(),
 ):
-    response = await CartService.add(
-        session=session,
-        user=user,
-        product_id=product_id,
-        quantity=data.quantity,
-    )
+    product = await ProductService.create(session=session, token=token, data=data)
 
-    if not response:
-        raise HTTPException(status_code=400, detail="There was a problem")
+    if not product:
+        raise HTTPException(status_code=400, detail="Product already exists")
 
-    return {"detail": "Product added to your cart successfuly"}
+    return product

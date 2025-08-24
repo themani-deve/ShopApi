@@ -1,15 +1,8 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
-
-
-class ProductOwnerSchema(BaseModel):
-    email: str
-    name: Optional[str]
-    family: Optional[str]
-    phone_number: Optional[str]
 
 
 class CreateProductInputSchema(BaseModel):
@@ -18,6 +11,13 @@ class CreateProductInputSchema(BaseModel):
     discount: int = Field(0, ge=0, le=100, description="Discount percentage (0-100)")
     count: int = Field(..., ge=0)
     is_active: bool = True
+
+
+class ProductOwnerSchema(BaseModel):
+    email: str
+    name: Optional[str]
+    family: Optional[str]
+    phone_number: Optional[str]
 
 
 class CreateProductResponseSchema(BaseModel):
@@ -56,27 +56,6 @@ class ProductSchema(BaseModel):
 class ProductDetailSchema(BaseModel):
     product: ProductSchema
     user_status: UserStatusSchema
-
-    class Config:
-        from_attributes = True
-
-
-class CartItemSchema(BaseModel):
-    id: UUID
-    quantity: int
-    product: ProductSchema
-
-    class Config:
-        from_attributes = True
-
-
-class AddCartInputSchema(BaseModel):
-    quantity: int = Field(default=1, ge=1, description="Quantity greater than or equal to one")
-
-
-class AddCartResponseSchema(BaseModel):
-    id: UUID
-    items: List[CartItemSchema]
 
     class Config:
         from_attributes = True
