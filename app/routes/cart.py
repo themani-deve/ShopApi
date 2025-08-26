@@ -6,6 +6,7 @@ from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from schemas.cart import AddCartInputSchema, CartResponseSchema
+from schemas.response import ServiceResult
 from schemas.user import TokenDataSchema
 from services.cart import CartService
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,12 +16,12 @@ route = APIRouter()
 
 @route.get("", response_model=CartResponseSchema, tags=["Cart"])
 async def cart(session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)):
-    cart = await CartService.get_cart_items(session=session, user=user)
+    response = await CartService.get_cart_items(session=session, user=user)
 
-    if not cart:
-        raise HTTPException(status_code=400, detail="User not found or account not activated")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return cart
+    return response.data
 
 
 @route.post("/add/{product_id}", tags=["Cart"])
@@ -37,19 +38,19 @@ async def add_to_cart(
         quantity=data.quantity,
     )
 
-    if not response:
-        raise HTTPException(status_code=400, detail="There was a problem")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Product added to your cart successfuly"}
+    return {"detail": response.message}
 
 
 @route.delete("/delete-item/{item_id}", tags=["Cart"])
 async def delete_item(
     item_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
 ):
-    deleted = await CartService.delete_item(session=session, user=user, item_id=item_id)
+    response = await CartService.delete_item(session=session, user=user, item_id=item_id)
 
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Item not found")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Item deleted successfuly"}
+    return {"detail": response.message}

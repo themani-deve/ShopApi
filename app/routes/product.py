@@ -15,43 +15,43 @@ route = APIRouter()
 
 @route.get("", response_model=list[ProductSchema], tags=["Product"])
 async def products(session: AsyncSession = Depends(get_db)):
-    products = await ProductService.products(session=session)
-    return products
+    response = await ProductService.get_products(session=session)
+    return response.data
 
 
-@route.get("/{slug}", response_model=ProductDetailSchema, tags=["Product"])
+@route.get("/detail/{slug}", response_model=ProductDetailSchema, tags=["Product"])
 async def product_detail(
-    slug: str, session: AsyncSession = Depends(get_db), token: Optional[TokenDataSchema] = Depends(login_optional)
+    slug: str, session: AsyncSession = Depends(get_db), user: Optional[TokenDataSchema] = Depends(login_optional)
 ):
-    product = await ProductService.product_detail(session=session, slug=slug, token=token)
+    response = await ProductService.product_detail(session=session, slug=slug, user=user)
 
-    if not product:
-        raise HTTPException(status_code=404, detail="Product not found")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return product
+    return response.data
 
 
 @route.post("/create", response_model=CreateProductResponseSchema, tags=["Product"])
 async def create(
-    token: TokenDataSchema = Depends(is_admin),
+    user: TokenDataSchema = Depends(is_admin),
     session: AsyncSession = Depends(get_db),
     data: CreateProductInputSchema = Body(),
 ):
-    product = await ProductService.create(session=session, token=token, data=data)
+    response = await ProductService.create(session=session, user=user, data=data)
 
-    if not product:
-        raise HTTPException(status_code=400, detail="Product already exists")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return product
+    return response.data
 
 
 @route.delete("/delete/{product_id}", tags=["Product"])
 async def delete(
     product_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
 ):
-    deleted = await ProductService.delete(session=session, user=user, product_id=product_id)
+    response = await ProductService.delete(session=session, user=user, product_id=product_id)
 
-    if not deleted:
-        raise HTTPException(status_code=404, detail="Product not found")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Product deleted successfuly"}
+    return {"detail": response.message}

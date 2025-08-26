@@ -57,3 +57,7 @@ class UserRepository:
         await session.commit()
 
         return True
+
+    @staticmethod
+    async def get_active_user(session: AsyncSession, user_id: UUID):
+        return await UserRepository.find(session=session, id=user_id, is_active=True)

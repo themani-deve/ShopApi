@@ -13,59 +13,59 @@ route = APIRouter()
 
 @route.post("/login", response_model=TokenSchema, tags=["Account"])
 async def login(session: AsyncSession = Depends(get_db), data: LoginSchema = Body()):
-    tokens = await UserService.login(session=session, email=data.email, password=data.password)
+    response = await UserService.login(session=session, email=data.email, password=data.password)
 
-    if not tokens:
-        raise HTTPException(status_code=400, detail="Email or password not valid")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return tokens
+    return response.data
 
 
 @route.post("/register", tags=["Account"])
 async def register(session: AsyncSession = Depends(get_db), data: RegisterSchema = Body()):
-    user = await UserService.register(session=session, email=data.email, password=data.password)
+    response = await UserService.register(session=session, email=data.email, password=data.password)
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Email does exists")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "User created successfuly"}
+    return {"detail": response.message}
 
 
 @route.post("/send-key", tags=["Account"])
 async def send_key(session: AsyncSession = Depends(get_db), data: SendKeySchema = Body()):
-    user = await UserService.send_key(session=session, email=data.email)
+    response = await UserService.send_key(session=session, email=data.email)
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Email does not exists or account is active")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Key has been sent you"}
+    return {"detail": response.message}
 
 
 @route.post("/change-password/{key}", tags=["Account"])
 async def change_password(key: str, session: AsyncSession = Depends(get_db), data: ChangePasswordSchema = Body()):
-    user = await UserService.change_password(session=session, key=key, new_pass=data.password)
+    response = await UserService.change_password(session=session, key=key, new_pass=data.password)
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Key not valid")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Your password changed successfuly"}
+    return {"detail": response.message}
 
 
 @route.get("/activate/{key}", tags=["Account"])
 async def activate(key: str, session: AsyncSession = Depends(get_db)):
-    user = await UserService.activate(session=session, key=key)
+    response = await UserService.activate(session=session, key=key)
 
-    if not user:
-        raise HTTPException(status_code=400, detail="Key not valid or account is activated")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "Your account has been activated"}
+    return {"detail": response.message}
 
 
 @route.delete("/delete", tags=["Account"])
 async def delete(session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)):
-    deleted = await UserService.delete(session=session, user=user)
+    response = await UserService.delete(session=session, user=user)
 
-    if not deleted:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
 
-    return {"detail": "User deleted successfuly"}
+    return {"detail": response.message}

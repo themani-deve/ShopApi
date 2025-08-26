@@ -20,12 +20,19 @@ class CartItemSchema(BaseModel):
         from_attributes = True
 
 
-class CartResponseSchema(BaseModel):
+class CartSchema(BaseModel):
     id: UUID
     status: bool
     ref_id: Optional[str]
     paid_at: Optional[datetime]
     updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class CartResponseSchema(BaseModel):
+    cart: CartSchema
     items: Optional[List[CartItemSchema]]
 
     class Config:

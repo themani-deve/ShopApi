@@ -19,6 +19,9 @@ class ProductOwnerSchema(BaseModel):
     family: Optional[str]
     phone_number: Optional[str]
 
+    class Config:
+        from_attributes = True
+
 
 class CreateProductResponseSchema(BaseModel):
     name: str
