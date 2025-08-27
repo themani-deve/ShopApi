@@ -1,4 +1,4 @@
-from repositories.product import ProductRepository
+from repositories.product import ProductCommentRepository, ProductRepository
 from repositories.user import UserRepository
 from schemas.product import *
 from schemas.response import ServiceResult
@@ -28,8 +28,12 @@ class ProductService:
 
         product_dict = ProductSchema.model_validate(product_obj, from_attributes=True)
         product_user = UserStatusSchema(in_cart=in_cart, need_login=need_login)
+        product_comments = [
+            ProductCommentResponseSchema.model_validate(comment, from_attributes=True)
+            for comment in product_obj.comments
+        ]
 
-        product = ProductDetailSchema(product=product_dict, user_status=product_user)
+        product = ProductDetailSchema(product=product_dict, user_status=product_user, product_comments=product_comments)
 
         return ServiceResult(success=True, data=product)
 
@@ -54,3 +58,33 @@ class ProductService:
         await ProductRepository.delete(session=session, product_id=product.id)
 
         return ServiceResult(success=True, message="Product deleted successfuly")
+
+
+class ProductCommentService:
+    @staticmethod
+    async def add_comment(
+        session: AsyncSession,
+        user: TokenDataSchema,
+        product_id: UUID,
+        text: str,
+        parent_id: UUID = None,
+    ):
+        user = await UserRepository.get_active_user(session=session, user_id=user.id)
+        if not user:
+            return ServiceResult(success=False, message="User not found or account not activated", status_code=404)
+
+        product = await ProductRepository.find(session=session, id=product_id, is_active=True)
+        if not product:
+            return ServiceResult(success=False, message="Product not found or product not activated", status_code=404)
+
+        if parent_id:
+            parent = await ProductCommentRepository.find(session=session, parent_id=parent_id)
+            parent_id = parent.id
+
+        comment = await ProductCommentRepository.create(
+            session=session, user_id=user.id, product_id=product.id, text=text, parent_id=parent_id
+        )
+
+        response = ProductCommentResponseSchema.model_validate(comment, from_attributes=True)
+
+        return ServiceResult(success=True, data=response)

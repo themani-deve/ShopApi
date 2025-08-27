@@ -29,6 +29,7 @@ class User(Base):
 
     products: Mapped[list["Product"]] = relationship(back_populates="owner", cascade="all, delete-orphan")
     carts: Mapped[list["Cart"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    comments: Mapped[list["ProductComment"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
     @property
     def to_payload(self):
@@ -59,6 +60,7 @@ class Product(Base):
     owner: Mapped["User"] = relationship(back_populates="products")
 
     cart_items: Mapped[list["CartItem"]] = relationship(back_populates="product", cascade="all, delete-orphan")
+    comments: Mapped[list["ProductComment"]] = relationship(back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("price >= 0 ", name="product_price_min"),
@@ -107,3 +109,25 @@ class CartItem(Base):
 
     product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"))
     product: Mapped["Product"] = relationship(back_populates="cart_items")
+
+
+class ProductComment(Base):
+    __tablename__ = "product_comments"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), default=uuid.uuid4, primary_key=True)
+
+    text: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    user: Mapped["User"] = relationship(back_populates="comments")
+
+    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"))
+    product: Mapped["Product"] = relationship(back_populates="comments")
+
+    parent_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("product_comments.id"), nullable=True
+    )
+    parent: Mapped["ProductComment"] = relationship(back_populates="replies", remote_side="ProductComment.id")
+
+    replies: Mapped[list["ProductComment"]] = relationship(back_populates="parent", cascade="all, delete-orphan")

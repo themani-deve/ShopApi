@@ -3,6 +3,7 @@ from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+from schemas.user import UserSchema
 
 
 class CreateProductInputSchema(BaseModel):
@@ -13,16 +14,6 @@ class CreateProductInputSchema(BaseModel):
     is_active: bool = True
 
 
-class ProductOwnerSchema(BaseModel):
-    email: str
-    name: Optional[str]
-    family: Optional[str]
-    phone_number: Optional[str]
-
-    class Config:
-        from_attributes = True
-
-
 class CreateProductResponseSchema(BaseModel):
     name: str
     price: int
@@ -31,7 +22,7 @@ class CreateProductResponseSchema(BaseModel):
     is_active: bool
     slug: str
     created_at: datetime
-    owner: ProductOwnerSchema
+    owner: UserSchema
 
     class Config:
         from_attributes = True
@@ -50,7 +41,22 @@ class ProductSchema(BaseModel):
     slug: str
     count: int
     is_active: bool
-    owner: Optional[ProductOwnerSchema]
+    owner: Optional[UserSchema]
+
+    class Config:
+        from_attributes = True
+
+
+class ProductCommentInputSchema(BaseModel):
+    text: str
+    parent_id: Optional[UUID] = None
+
+
+class ProductCommentResponseSchema(BaseModel):
+    id: UUID
+    text: str
+    parent_id: Optional[UUID] = None
+    user: UserSchema
 
     class Config:
         from_attributes = True
@@ -59,6 +65,7 @@ class ProductSchema(BaseModel):
 class ProductDetailSchema(BaseModel):
     product: ProductSchema
     user_status: UserStatusSchema
+    product_comments: Optional[list[ProductCommentResponseSchema]]
 
     class Config:
         from_attributes = True

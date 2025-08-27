@@ -1,5 +1,6 @@
 import re
 import uuid
+from typing import Optional
 
 from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
@@ -70,3 +71,13 @@ class TokenDataSchema(BaseModel):
     email: EmailStr
     is_active: bool
     is_staff: bool
+
+
+class UserSchema(BaseModel):
+    email: str
+    name: Optional[str]
+    family: Optional[str]
+    phone_number: Optional[str]
+
+    class Config:
+        from_attributes = True

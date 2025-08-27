@@ -7,7 +7,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from schemas.product import *
 from schemas.user import TokenDataSchema
-from services.product import ProductService
+from services.product import ProductCommentService, ProductService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 route = APIRouter()
@@ -55,3 +55,20 @@ async def delete(
         raise HTTPException(status_code=response.status_code, detail=response.message)
 
     return {"detail": response.message}
+
+
+@route.post("/comments/add/{product_id}", response_model=ProductCommentResponseSchema, tags=["Product Comments"])
+async def add_comment(
+    product_id: UUID,
+    session: AsyncSession = Depends(get_db),
+    user: TokenDataSchema = Depends(get_current_user),
+    data: ProductCommentInputSchema = Body(),
+):
+    response = await ProductCommentService.add_comment(
+        session=session, user=user, product_id=product_id, text=data.text, parent_id=data.parent_id
+    )
+
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
+    
+    return response.data
