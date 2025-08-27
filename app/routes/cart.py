@@ -5,8 +5,7 @@ from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
-from schemas.cart import AddCartInputSchema, CartResponseSchema
-from schemas.response import ServiceResult
+from schemas.cart import AddCartInputSchema, CartResponseSchema, CartSchema
 from schemas.user import TokenDataSchema
 from services.cart import CartService
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +41,24 @@ async def add_to_cart(
         raise HTTPException(status_code=response.status_code, detail=response.message)
 
     return {"detail": response.message}
+
+
+@route.get("/history", response_model=list[CartSchema], tags=["Cart"])
+async def history(session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)):
+    response = await CartService.history(session=session, user=user)
+    return response.data
+
+
+@route.get("/history/detail/{cart_id}", response_model=CartResponseSchema, tags=["Cart"])
+async def history_detail(
+    cart_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
+):
+    response = await CartService.history_detail(session=session, user=user, cart_id=cart_id)
+
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
+
+    return response.data
 
 
 @route.delete("/delete-item/{item_id}", tags=["Cart"])

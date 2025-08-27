@@ -41,6 +41,21 @@ class CartService:
         return ServiceResult(success=True, message="Product added to your cart successfuly", status_code=201)
 
     @staticmethod
+    async def history(session: AsyncSession, user: TokenDataSchema) -> ServiceResult:
+        carts = await CartRepository.get_history(session=session, user_id=user.id)
+        return ServiceResult(success=True, data=carts)
+
+    @staticmethod
+    async def history_detail(session: AsyncSession, user: TokenDataSchema, cart_id: UUID) -> ServiceResult:
+        cart = await CartRepository.find_cart(session=session, user_id=user.id, id=cart_id)
+        if not cart:
+            return ServiceResult(success=False, message="Cart not found", status_code=404)
+
+        response = CartResponseSchema(cart=cart, items=cart.items)
+
+        return ServiceResult(success=True, data=response)
+
+    @staticmethod
     async def delete_item(session: AsyncSession, user: TokenDataSchema, item_id: UUID) -> ServiceResult:
         cart = await CartRepository.find_cart(session=session, user_id=user.id, status=False)
         if not cart:

@@ -24,6 +24,7 @@ class CartSchema(BaseModel):
     id: UUID
     status: bool
     ref_id: Optional[str]
+    amount: Optional[int]
     paid_at: Optional[datetime]
     updated_at: datetime
 

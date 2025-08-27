@@ -65,3 +65,10 @@ class CartRepository:
         await session.commit()
 
         return True
+    
+    @staticmethod
+    async def get_history(session: AsyncSession, user_id):
+        query = await session.execute(select(Cart).filter_by(user_id=user_id))
+        carts = query.scalars().all()
+
+        return carts
