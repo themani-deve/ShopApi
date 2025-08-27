@@ -38,3 +38,9 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated=["auto"])
 # Authentication route
 
 oauth2_scheme = OAuth2PasswordBearer("/accounts/login")
+
+# Zarinpal gateway settings
+
+ZARINPAL_MERCHANT_ID = os.getenv("ZARINPAL_MERCHANT_ID")
+ZARINPAL_SANDBOX = True
+ZARINPAL_CALLBACK_URL = "http://localhost:8000/cart/pay/verify"

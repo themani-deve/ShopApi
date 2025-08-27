@@ -5,9 +5,9 @@ from db.database import get_db
 from fastapi import Body, Depends
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
-from schemas.cart import AddCartInputSchema, CartResponseSchema, CartSchema
+from schemas.cart import *
 from schemas.user import TokenDataSchema
-from services.cart import CartService
+from services.cart import CartPaymentService, CartService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 route = APIRouter()
@@ -71,3 +71,25 @@ async def delete_item(
         raise HTTPException(status_code=response.status_code, detail=response.message)
 
     return {"detail": response.message}
+
+
+@route.post("/pay/open-gate/{cart_id}", response_model=PayResponseSchema, tags=["Cart Payment"])
+async def pay_cart(
+    cart_id: UUID, session: AsyncSession = Depends(get_db), user: TokenDataSchema = Depends(get_current_user)
+):
+    response = await CartPaymentService.open_gate(session=session, user=user, cart_id=cart_id)
+
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
+
+    return response.data
+
+
+@route.get("/pay/verify", response_model=PayResponseSchema, tags=["Cart Payment"])
+async def verify_pay(Status: str, Authority: str, session: AsyncSession = Depends(get_db)):
+    response = await CartPaymentService.verify_payment(session=session, status=Status, authority=Authority)
+
+    if not response.success:
+        raise HTTPException(status_code=response.status_code, detail=response.message)
+
+    return response.data

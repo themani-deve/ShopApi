@@ -84,7 +84,7 @@ class Cart(Base):
     status: Mapped[bool] = mapped_column(Boolean(), default=False)
     authority: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
     ref_id: Mapped[str] = mapped_column(String(255), nullable=True, unique=True)
-    amount: Mapped[int] = mapped_column(Integer(), nullable=True)
+    amount: Mapped[int] = mapped_column(Integer(), default=0)
 
     paid_at: Mapped[datetime] = mapped_column(DateTime(), nullable=True)
     updated_at: Mapped[datetime] = mapped_column(DateTime(), default=datetime.now, onupdate=datetime.now)

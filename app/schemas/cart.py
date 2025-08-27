@@ -38,3 +38,7 @@ class CartResponseSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class PayResponseSchema(BaseModel):
+    url: str
