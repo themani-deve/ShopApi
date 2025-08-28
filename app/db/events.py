@@ -1,8 +1,7 @@
 import uuid
 
-from db.models import CartItem, Product
+from product.models import Product
 from sqlalchemy import event
-from sqlalchemy.orm import Session
 from utils.generators import slugify
 
 

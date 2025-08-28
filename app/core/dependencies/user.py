@@ -1,10 +1,10 @@
 from typing import Optional
 
+from account.schemas import TokenData
+from account.services import JWTService
+from core.settings import oauth2_scheme
 from fastapi import Depends, Header
 from fastapi.exceptions import HTTPException
-from core.settings import oauth2_scheme
-from schemas.user import TokenDataSchema
-from services.jwt import JWTService
 
 
 def verify_token(token: str, require_admin: bool = False):
@@ -23,7 +23,7 @@ def verify_token(token: str, require_admin: bool = False):
             detail="You do not have permission to access this endpoint",
         )
 
-    return TokenDataSchema(**payload)
+    return TokenData(**payload)
 
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
