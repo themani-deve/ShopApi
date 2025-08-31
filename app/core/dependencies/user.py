@@ -26,7 +26,7 @@ def verify_token(token: str, require_admin: bool = False):
     return TokenData(**payload)
 
 
-def get_current_user(token: str = Depends(oauth2_scheme)):
+def get_user(token: str = Depends(oauth2_scheme)):
     return verify_token(token=token)
 
 

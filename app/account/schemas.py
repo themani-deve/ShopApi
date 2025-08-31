@@ -37,3 +37,13 @@ class TokenData(BaseModel):
     email: str
     is_active: bool
     is_staff: bool
+
+
+class UserData(BaseModel):
+    email: str
+    phone_number: Optional[str]
+    name: Optional[str]
+    family: Optional[str]
+
+    class Config:
+        from_attributes = True

@@ -22,7 +22,11 @@ class UserAlreadyActiveError(AccountError):
     pass
 
 
-class UserNotActivatedError(AccountError):
+class UserIsNotAdminError(AccountError):
+    pass
+
+
+class AccessDenied(AccountError):
     pass
 
 

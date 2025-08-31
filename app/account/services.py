@@ -22,19 +22,20 @@ class AccountService:
         self.repo = AccountRepository(db=db)
 
     async def create_user(self, data: CreateUser) -> StringResponse:
-        password_hashed = hashed_password(plain_pass=data.password)
-        await self.repo.create(email=data.email, password_hashed=password_hashed)
+        async with self.repo.db.begin():
+            password_hashed = hashed_password(plain_pass=data.password)
+            await self.repo.create(email=data.email, password_hashed=password_hashed)
 
-        return StringResponse(detail=self.CREATED_MSG)
+            return StringResponse(detail=self.CREATED_MSG)
 
     async def login_user(self, data: LoginUser) -> Token:
         user = await self.repo.get(email=data.email)
 
         if not user or not verify_password(plain_pass=data.password, hashed_pass=user.password):
             raise InvalidCredentialsError(self.INVALID_MSG)
-        
+
         elif not user.is_active:
-            raise UserNotActivatedError("Your account is not activated!")
+            raise AccessDenied("Your account is not activated!")
 
         access_token = JWTService.create_access(payload=user.to_payload())
         refresh_token = JWTService.create_refresh(payload=user.to_payload())
@@ -42,47 +43,51 @@ class AccountService:
         return Token(access_token=access_token, refresh_token=refresh_token)
 
     async def send_key(self, data: SendKeyInput) -> StringResponse:
-        user = await self.repo.get(email=data.email)
-        if not user:
-            raise UserNotFoundError(self.NOTFOUND_MSG)
+        async with self.repo.db.begin():
+            user = await self.repo.get(email=data.email)
+            if not user:
+                raise UserNotFoundError(self.NOTFOUND_MSG)
 
-        key = get_random_string(length=72)
-        await self.repo.set_key(user=user, key=key)
+            key = get_random_string(length=72)
+            await self.repo.set_key(user=user, key=key)
 
-        return StringResponse(detail="Code has been sent you!")
+            return StringResponse(detail="Code has been sent you!")
 
     async def activate_account(self, key: str) -> StringResponse:
-        user = await self.repo.get(key=key)
+        async with self.repo.db.begin():
+            user = await self.repo.get(key=key)
 
-        if not user:
-            raise UserNotFoundError(self.NOTFOUND_MSG)
+            if not user:
+                raise UserNotFoundError(self.NOTFOUND_MSG)
 
-        elif user.is_active:
-            await self.repo.deactivate_key(user=user)
-            raise UserAlreadyActiveError("This account already been activated!")
+            elif user.is_active:
+                await self.repo.deactivate_key(user=user)
+                raise UserAlreadyActiveError("This account already been activated!")
 
-        await self.repo.set_active(user=user)
+            await self.repo.set_active(user=user)
 
-        return StringResponse(detail="Your account has been activated!")
+            return StringResponse(detail="Your account has been activated!")
 
     async def change_password(self, key: str, data: ChangePassword) -> StringResponse:
-        user = await self.repo.get(key=key)
-        if not user:
-            raise UserNotFoundError(self.NOTFOUND_MSG)
+        async with self.repo.db.begin():
+            user = await self.repo.get(key=key)
+            if not user:
+                raise UserNotFoundError(self.NOTFOUND_MSG)
 
-        password_hashed = hashed_password(plain_pass=data.password)
-        await self.repo.change_password(user=user, password_hashed=password_hashed)
+            password_hashed = hashed_password(plain_pass=data.password)
+            await self.repo.change_password(user=user, password_hashed=password_hashed)
 
-        return StringResponse(detail="Your password has been changed successfully!")
-    
+            return StringResponse(detail="Your password has been changed successfully!")
+
     async def delete_account(self, user: TokenData) -> StringResponse:
-        user = await self.repo.get(id=user.id)
-        if not user:
-            raise UserNotFoundError(self.NOTFOUND_MSG)
-        
-        await self.repo.delete(user=user)
+        async with self.repo.db.begin():
+            user = await self.repo.get(id=user.id)
+            if not user:
+                raise UserNotFoundError(self.NOTFOUND_MSG)
 
-        return StringResponse(detail="Your account has been deleted successfully!")
+            await self.repo.delete(user=user)
+
+            return StringResponse(detail="Your account has been deleted successfully!")
 
 
 class JWTService:

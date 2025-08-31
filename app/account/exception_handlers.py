@@ -10,6 +10,8 @@ async def account_exception_handler(request: Request, exc: AccountError):
         status_code = status.HTTP_401_UNAUTHORIZED
     elif isinstance(exc, UserNotFoundError):
         status_code = status.HTTP_404_NOT_FOUND
+    elif isinstance(exc, UserIsNotAdminError):
+        status_code = status.HTTP_406_NOT_ACCEPTABLE
     else:
         status_code = status.HTTP_400_BAD_REQUEST
 

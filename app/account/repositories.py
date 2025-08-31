@@ -18,10 +18,9 @@ class AccountRepository:
             raise UserAlreadyExistsError("User with this email already exists!")
 
         user = User(email=email, password=password_hashed)
-        self.db.add(user)
 
-        await self.db.commit()
-        await self.db.refresh(user)
+        self.db.add(user)
+        await self.db.flush()
 
         return user
 
@@ -44,14 +43,10 @@ class AccountRepository:
         for key, value in kwargs.items():
             setattr(user, key, value)
 
-        await self.db.commit()
-        await self.db.refresh(user)
-
         return user
 
     async def delete(self, user: User) -> None:
         await self.db.delete(user)
-        await self.db.commit()
 
     async def set_key(self, user: User, key: str) -> User:
         """Set key for user."""
