@@ -8,7 +8,7 @@ from fastapi.routing import APIRouter
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .schemas import AddCartItem, CartData, CartDetail
-from .services import CartService
+from .services import CartService, PaymentService
 
 route = APIRouter()
 
@@ -34,3 +34,21 @@ async def get_history(db: AsyncSession = Depends(get_db), user: TokenData = Depe
 async def history_detail(cart_id: UUID, db: AsyncSession = Depends(get_db), user: TokenData = Depends(get_user)):
     service = CartService(db=db)
     return await service.history_detail(cart_id=cart_id, user=user)
+
+
+@route.delete("/delete/{item_id}", response_model=StringResponse, tags=["Cart"])
+async def delete_item(item_id: UUID, db: AsyncSession = Depends(get_db), user: TokenData = Depends(get_user)):
+    service = CartService(db=db)
+    return await service.delete_item(item_id=item_id, user=user)
+
+
+@route.post("/open-gate/{cart_id}", response_model=StringResponse, tags=["Payment"])
+async def open_gate(cart_id: UUID, db: AsyncSession = Depends(get_db), user: TokenData = Depends(get_user)):
+    service = PaymentService(db=db)
+    return await service.open_gate(cart_id=cart_id, user=user)
+
+
+@route.get("/pay/verify", response_model=StringResponse, tags=["Payment"])
+async def verify_payment(Status: str, Authority: str, db: AsyncSession = Depends(get_db)):
+    service = PaymentService(db=db)
+    return await service.verify_payment(status=Status, authority=Authority)
